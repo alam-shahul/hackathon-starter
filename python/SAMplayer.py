@@ -30,16 +30,22 @@ for state in game.turns():
     # Your Code will run within this loop
 #    print(len(list(state.get_entities(team=state.my_team))))
     for entity in state.get_entities(team=state.my_team):
+        # Get nearest glass statue
         nearstat = nearest_glass_state(state, entity)
         # This line gets all the bots on your team
 #        print(get_entity_sector(state, entity))
+        # Try to build statue every 50th turn (every 100th turn overall)
         if(state.turn % 50 == 0 or (state.turn + 1) % 50 == 0 and True):
             for direction in np.random.permutation(battlecode.Direction.directions()):
+                # Check if you can build in the selected direction
                 if entity.can_build(direction):
+                    # Check if glass statue exists
                     if(nearstat != None):
                         print('Testing nearstat')
+                        # Check if nearest glass statue is in same sector as entity
                         if(get_entity_sector(state, nearstat) != get_entity_sector(state, entity)):
 #                    print('SAMplayer should be building.')
+                            
                             entity.queue_build(direction)
 
         my_location = entity.location
