@@ -4,7 +4,7 @@ import random
 import numpy as np
 
 #Start a game
-game = battlecode.Game('SAMplayer')
+game = battlecode.Game('testplayer')
 
 start = time.clock()
 
@@ -24,32 +24,35 @@ def nearest_glass_state(state, entity):
 
 for state in game.turns():
     # Your Code will run within this loop
-#    print(len(list(state.get_entities(team=state.my_team))))
     for entity in state.get_entities(team=state.my_team): 
         # This line gets all the bots on your team
 
-        if(state.turn % 50 == 0 or (state.turn + 1) % 50 == 0 and True):
+        print(state.turn)
+        print(state.turn % 100 == 0)
+        if(state.turn % 100 == 0):
+            print(len(battlecode.Direction.directions()))
             for direction in np.random.permutation(battlecode.Direction.directions()):
+                print(direction)
                 if entity.can_build(direction):
-                    print('SAMplayer should be building.')
+                    print('Red should be building')
                     entity.queue_build(direction)
 
         my_location = entity.location
-        near_entities = entity.entities_within_euclidean_distance(1.9)
-        near_entities = list(filter(lambda x: x.can_be_picked, near_entities))
+        near_entites = entity.entities_within_euclidean_distance(1.9)
+        near_entites = list(filter(lambda x: x.can_be_picked, near_entites))
 
-        for pickup_entity in near_entities:
+        for pickup_entity in near_entites:
             assert entity.location.is_adjacent(pickup_entity.location)
             if entity.can_pickup(pickup_entity):
                 entity.queue_pickup(pickup_entity)
 
         statue = nearest_glass_state(state, entity)
-        if(statue != None and statue.team != state.my_team):
+        if(statue != None):
             direction = entity.location.direction_to(statue.location)
             if entity.can_throw(direction):
                 entity.queue_throw(direction)
 
-        for direction in np.random.permutation(battlecode.Direction.directions()):
+        for direction in battlecode.Direction.directions():
             if entity.can_move(direction):
                 entity.queue_move(direction)
 
