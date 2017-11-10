@@ -22,17 +22,25 @@ def nearest_glass_state(state, entity):
 
     return nearest_statue
 
+def get_entity_sector(state, entity):
+    standard_size= (state.map.width/5, state.map.height/5)
+    return(int(entity.location.x/5), int(entity.location.y/5))
+
 for state in game.turns():
     # Your Code will run within this loop
 #    print(len(list(state.get_entities(team=state.my_team))))
-    for entity in state.get_entities(team=state.my_team): 
+    for entity in state.get_entities(team=state.my_team):
+        nearstat = nearest_glass_state(state, entity)
         # This line gets all the bots on your team
-
+#        print(get_entity_sector(state, entity))
         if(state.turn % 50 == 0 or (state.turn + 1) % 50 == 0 and True):
             for direction in np.random.permutation(battlecode.Direction.directions()):
                 if entity.can_build(direction):
-                    print('SAMplayer should be building.')
-                    entity.queue_build(direction)
+                    if(nearstat != None):
+                        print('Testing nearstat')
+                        if(get_entity_sector(state, nearstat) != get_entity_sector(state, entity)):
+#                    print('SAMplayer should be building.')
+                            entity.queue_build(direction)
 
         my_location = entity.location
         near_entities = entity.entities_within_euclidean_distance(1.9)
