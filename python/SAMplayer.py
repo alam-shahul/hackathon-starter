@@ -1,6 +1,7 @@
 import battlecode
 import time
 import random
+import numpy as np
 
 #Start a game
 game = battlecode.Game('testplayer')
@@ -23,6 +24,7 @@ def nearest_glass_state(state, entity):
 
 for state in game.turns():
     # Your Code will run within this loop
+    print(len(list(state.get_entities(team=state.my_team))))
     for entity in state.get_entities(team=state.my_team): 
         # This line gets all the bots on your team
 
@@ -41,12 +43,12 @@ for state in game.turns():
                 entity.queue_pickup(pickup_entity)
 
         statue = nearest_glass_state(state, entity)
-        if(statue != None):
+        if(statue != None and statue.team != state.my_team):
             direction = entity.location.direction_to(statue.location)
             if entity.can_throw(direction):
                 entity.queue_throw(direction)
 
-        for direction in battlecode.Direction.directions():
+        for direction in np.random.permutation(battlecode.Direction.directions()):
             if entity.can_move(direction):
                 entity.queue_move(direction)
 
