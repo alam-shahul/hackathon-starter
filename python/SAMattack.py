@@ -4,7 +4,7 @@ import random
 import numpy as np
 
 #Start a game
-game = battlecode.Game('SAMplayer')
+game = battlecode.Game('SAMattack')
 
 start = time.clock()
 
@@ -65,7 +65,7 @@ for state in game.turns():
                         entity.queue_build(direction)
                         done = True
         if(done):
-            break
+            continue
 
         if enemy_statue != None:
             towards_enemy= entity.location.direction_to(enemy_statue.location)
