@@ -7,7 +7,7 @@ game = battlecode.Game('testplayer')
 
 start = time.clock()
 
-#define helper functions here
+#define helper functions here and global variables
 def nearest_glass_state(state, entity):
     nearest_statue = None
     nearest_dist = 10000
