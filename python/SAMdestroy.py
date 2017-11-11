@@ -45,19 +45,21 @@ def is_throw_path_valid(state, source, target):
 
     dx = target.location.x - source.location.x
     dy = target.location.y - source.location.y
-
-    if not(abs(dx) == abs(dy) or dx == 0 or dy == 0):                                         
+    
+    if (abs(dx) != abs(dy) and dx != 0 and dy != 0):                                         
+        print(dx, dy)
         return False
 
+    print('Got past')
     initial = source.location
 
     for i in range(max(abs(dx), abs(dy))):
-        interm_loc = Location(initial.x+ i*direction.dx, initial.y+i*direction.dy)
+        interm_loc = battlecode.Location(initial.x+ i*direction.dx, initial.y+i*direction.dy)
         on_map = state.map.location_on_map(interm_loc)
         if (not on_map):
             return False
 
-        is_occupied = len(list(state.get_entitites(location = interm_loc, type=battlecode.Entity.HEDGE)) > 0
+        is_occupied = len(list(state.get_entities(location = interm_loc, entity_type=battlecode.Entity.HEDGE))) > 0
 
         if is_occupied:
             return False
@@ -84,13 +86,17 @@ for state in game.turns():
         my_neighbors = list(entity.entities_within_adjacent_distance(1, iterator=list(state.get_entities(entity_type=battlecode.Entity.THROWER, team=state.my_team))))
         enemy_neighbors = list(entity.entities_within_adjacent_distance(1, iterator=list(state.get_entities(entity_type=battlecode.Entity.THROWER, team = state.other_team))))
 
-        hitable = entity.entities_within_adjacent_distance(7, iterator=list(state.get_entities(entity_type=battlecode.Entity.STATUE, team=state.other_team)))
+        hitable = list(entity.entities_within_adjacent_distance(7, iterator=list(state.get_entities(entity_type=battlecode.Entity.STATUE, team=state.other_team))))
         obj_thrown = False
 
         if len(enemy_neighbors) + len(my_neighbors) > 0:
-            if len(list(hitable)) > 0:
+#            print(len(enemy_neighbors) + len(my_neighbors))
+            if len(hitable) > 0:
+                print(len(hitable))
                 if len(enemy_neighbors) > 0:  
+                   # print(len(list(hitable)))
                     for statue in hitable:
+                        print('Something should be hit.')
                         if is_throw_path_valid(state, entity, statue):
                             # Pick up enemy neighbor if possible
                             for pickup_entity in enemy_neighbors:
@@ -108,7 +114,7 @@ for state in game.turns():
                     if obj_thrown:
                         continue
                 elif len(my_neighbors) > 0:   
-                    if len(list(hitable)) > 0:
+                    if len(hitable) > 0:
                         for statue in hitable:   
                             if is_throw_path_valid(state, entity, statue):
                                 # Pick up enemy neighbor if possible
