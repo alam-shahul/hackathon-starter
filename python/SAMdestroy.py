@@ -17,7 +17,7 @@ def nearest_my_glass_state(state, entity):
             continue
         dist = entity.location.adjacent_distance_to(other_entity.location)
         if(dist< nearest_dist):
-            dist = nearest_dist
+            nearest_dist = dist
             nearest_statue = other_entity
 
     return nearest_statue
@@ -30,7 +30,7 @@ def nearest_enemy_glass_state_in_any_sector(state, entity):
             continue
         dist = entity.location.adjacent_distance_to(other_entity.location)
         if(dist< nearest_dist):
-            dist = nearest_dist
+            nearest_dist = dist
             nearest_statue = other_entity
 
     return nearest_statue
@@ -159,10 +159,15 @@ for state in game.turns():
         else:
             # no hitables, defent yourself (throw neighbors) and move towards nearest statue or move randomly
             if len(enemy_neighbors) > 0:
-                if entity.can_pickup(enemy_neighbors[0]):
-                    # print('Can pick up enemy neighbor')
-                    entity.queue_pickup(enemy_neighbors[0])
-                    throw_away(state, entity)
+                for neighbor in enemy_neighbors:
+                    if entity.can_pickup(neighbor):
+                        # print('Can pick up enemy neighbor')
+                        entity.queue_pickup(neighbor)
+                        throw_away(state, entity)
+                        obj_thrown = True
+                        break
+                if not obj_thrown:
+                    move_towards_nearest_enemy_statue(state, entity)
             else:
                 move_towards_nearest_enemy_statue(state, entity)
         continue
