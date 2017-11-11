@@ -17,7 +17,7 @@ def nearest_my_glass_state(state, entity):
             continue
         dist = entity.location.adjacent_distance_to(other_entity.location)
         if(dist< nearest_dist):
-            dist = nearest_dist
+            nearest_dist = dist
             nearest_statue = other_entity
 
     return nearest_statue
@@ -30,7 +30,7 @@ def nearest_enemy_glass_state_in_any_sector(state, entity):
             continue
         dist = entity.location.adjacent_distance_to(other_entity.location)
         if(dist< nearest_dist):
-            dist = nearest_dist
+            nearest_dist = dist
             nearest_statue = other_entity
 
     return nearest_statue
@@ -61,13 +61,33 @@ def is_throw_path_valid(state, source, target):
 
         if is_occupied:
             return False
-    print('Got past')
+#    print('Got past')
     return True
 
-""" Don't use this; use sector_at
-def get_entity_sector(entity):
-    return(entity.location.x // 5, entity.location.y // 5)
-"""
+def can_throw_custom(state, entity, direction):
+    '''
+    To throw an entity.
+    Self has to be holding a unit and self has to be able to act.
+    The adjacent square in the given direction has to be on the map and not
+    occupied.
+
+    Args:
+        direction (Direction): Direction this entity desires to throw its
+                               held entity
+    Returns:
+        bool: True if this entity thrown in given direction
+    '''
+    if not entity.is_holding or not entity.can_act:
+        return
+
+    held = entity.holding
+    target_loc = entity.location.adjacent_location_in_direction(direction)
+    on_map = state.map.location_on_map(target_loc)
+    is_occupied = target_loc in state.map._occupied
+
+    if ((not on_map) or is_occupied):
+        return False
+    return True
 
 """
 Destroy code below
@@ -90,24 +110,37 @@ for state in game.turns():
         if len(enemy_neighbors) + len(my_neighbors) > 0:
 #            print(len(enemy_neighbors) + len(my_neighbors))
             if len(hitable) > 0:
-                print(len(hitable))
+#                print(len(hitable))
                 if len(enemy_neighbors) > 0:  
                    # print(len(list(hitable)))
                     for statue in hitable:
-                        print('Something should be hit.')
+#                        print('Something should be hit.')
                         if is_throw_path_valid(state, entity, statue):
                             # Pick up enemy neighbor if possible
                             for pickup_entity in enemy_neighbors:
                                 if entity.can_pickup(pickup_entity):
                                     entity.queue_pickup(pickup_entity)
                                     break
-                           
+#                            print('Is holding.')
                             # Throw object towards nearest statue
                             direction = entity.location.direction_to(statue.location)
-                            if entity.can_throw(direction):
+#                            print(statue.location.x - entity.location.x, statue.location.y - entity.location.y)
+                            print(direction)
+                            loc2 = (entity.location.adjacent_location_in_direction(direction))
+#                            print(loc2 in state.map._occupied)
+#                            print(is_throw_path_valid(state, entity, statue))
+                            if can_throw_custom(state, entity, direction):
+                                print('Should throw')
                                 entity.queue_throw(direction)
                                 obj_thrown = True
                                 break
+                            else:
+                                for direction in np.random.permutation(battlecode.Direction.directions()):
+                                    if can_throw_custom(state, entity, direction):
+                                       entity.queue_throw(direction)
+                                       obj_thrown = True
+                                       break
+
 
                     if obj_thrown:
                         continue
@@ -123,7 +156,7 @@ for state in game.turns():
     
                                 # Throw object towards nearest statue
                                 direction = entity.location.direction_to(statue.location)
-                                if entity.can_throw(direction):
+                                if can_throw_custom(state, entity,direction):
                                     entity.queue_throw(direction)
                                     obj_thrown = True
                                     break
@@ -134,35 +167,41 @@ for state in game.turns():
             # Nothing hitable, but enemy neighbors available
             elif len(enemy_neighbors) > 0:
                 nearest_statue = nearest_enemy_glass_state_in_any_sector(state, entity)
+                if nearest_statue is None:
+                   for direction in np.random.permutation(battlecode.Direction.directions()):
+                       if can_throw_custom(state, entity, direction):
+                           entity.queue_throw(direction)
+                   break
+
                 direction = entity.location.direction_to(nearest_statue.location)
                 if entity.can_pickup(enemy_neighbors[0]):
                     entity.queue_pickup(enemy_neighbors[0])
-                if entity.can_throw(direction):
+                if can_throw_custom(state, entity, direction):
                     entity.queue_throw(direction)
-                for direction in np.random.permutation(battlecode.Direction.directions()):
-                    if entity.can_throw(direction):
-                       entity.queue_throw(direction)
-                       obj_thrown = True
-                       break
+                else:
+                    for direction in np.random.permutation(battlecode.Direction.directions()):
+                        if can_throw_custom(state,entity, direction):
+                           entity.queue_throw(direction)
+                           obj_thrown = True
+                           break
                 if obj_thrown:
                     continue
 
         else:
             # No objects thrown, move towards nearest enemy statue
             nearest_statue = nearest_enemy_glass_state_in_any_sector(state, entity)
-            if nearest_statue is None:
-               for direction in np.random.permutation(battlecode.Direction.directions()):
-                   if entity.can_move(direction):
-                       entity.queue_move(direction)
-               break
-
-            towards_enemy = entity.location.direction_to(nearest_statue.location)
-            if entity.can_move(towards_enemy):
-                entity.queue_move(towards_enemy)
+            if nearest_statue != None:
+                towards_enemy= entity.location.direction_to(nearest_statue.location)
+                if entity.can_move(towards_enemy):
+                    entity.queue_move(towards_enemy)
+                else:
+                   for direction in np.random.permutation(battlecode.Direction.directions()):
+                       if entity.can_move(direction):
+                           entity.queue_move(direction)
             else:
-               for direction in np.random.permutation(battlecode.Direction.directions()):
-                   if entity.can_move(direction):
-                       entity.queue_move(direction)
+                for direction in np.random.permutation(battlecode.Direction.directions()):
+                    if entity.can_move(direction):
+                        entity.queue_move(direction)
 
 end = time.clock()
 print('clock time: '+str(end - start))
