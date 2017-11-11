@@ -61,6 +61,7 @@ for state in game.turns():
         if(statue != None and statue.team != state.my_team):
             direction = entity.location.direction_to(statue.location)
             if entity.can_throw(direction):
+                print('thrown!')
                 entity.queue_throw(direction)
 
         for direction in np.random.permutation(battlecode.Direction.directions()):
