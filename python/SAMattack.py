@@ -52,6 +52,8 @@ for state in game.turns():
 #    print(len(list(state.get_entities(team=state.my_team))))
     
     for entity in state.get_entities(team=state.my_team):
+        if entity.cooldown != 0:
+            continue
 
         enemy_statue = nearest_enemy_glass_state(state, entity)
         my_statue = nearest_my_glass_state(state, entity)

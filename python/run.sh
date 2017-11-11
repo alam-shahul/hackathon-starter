@@ -1,3 +1,3 @@
 #!/bin/sh
 
-BATTLECODE_PLAYER_KEY="$1" BATTLECODE_IP="$2" python SAMplayer.py
+BATTLECODE_PLAYER_KEY="$1" BATTLECODE_IP="$2" python SAMcolonize.py
