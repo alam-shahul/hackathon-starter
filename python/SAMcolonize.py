@@ -3,8 +3,12 @@ import time
 import random
 import numpy as np
 
+
+# Global Constants
+CAP_ROBOTS_TO_PROCESS = 80
+
 #Start a game
-game = battlecode.Game('SAMplayer')
+game = battlecode.Game('SAMcolonize')
 
 start = time.clock()
 
@@ -50,26 +54,33 @@ def get_unoccupied_sectors(state):
             occupied_sectors.remove(sector)
     return occupied_sectors
 
+def get_move_direction(destination):
+    pass
+
 """
 Colonization code below
 """
 
 for state in game.turns():
-    # Your Code will run within this loop
+    # Your code will run within this loop
 
-    num_entities = len(list(state.get_entities(team=state.my_team)))
-    num_entities_to_run = num_entities if num_entities <= 80 else 80
+    all_entities = list(state.get_entities(team=state.my_team))
+    num_entities = len(all_entities)
+    num_entities_to_run = num_entities if num_entities <= CAP_ROBOTS_TO_PROCESS else CAP_ROBOTS_TO_PROCESS
     unoccupied_sectors = get_unoccupied_sectors(state)
+    sector_assignments = [0]*len(unoccupied_sectors)
+    if len(unoccupied_sectors) > 0:
+        cap_assignments = num_entities_to_run // len(unoccupied_sectors)
+    else:
+        cap_assignments = 0
 
-    for entity in state.get_entities(team=state.my_team):
+    for entity in all_entities:
         if num_entities_to_run > 0:
             num_entities_to_run -= 1
         else:
             break
 
         my_location = entity.location
-        # near_entities = entity.entities_within_euclidean_distance(1.9)
-        # near_entities = list(filter(lambda x: x.can_be_picked, near_entities))
         is_building = False
 
         # Check for possibility of building in unowned sector
@@ -80,29 +91,45 @@ for state in game.turns():
                     entity.queue_build(d)
                     is_building = True
 
+        # If not building this turn
         if not is_building:
             unowned_sectors = []
             for top_left in state.map._sectors:
                 sector = state.map.sector_at(top_left)
                 if sector.team != state.my_team:
                     unowned_sectors.append(sector)
-            # if len(unowned_sectors) > 0:
-            #     print(unowned_sectors)
 
+            # Initialize max tracking variables
             closest_center = None
+            closest_sector_index = -1
             dist_closest_sector = np.inf
-            for s in get_unoccupied_sectors(state):
+
+            for i in range(len(unoccupied_sectors)):
+                s = unoccupied_sectors[i]
                 center = battlecode.Location(s.top_left.x + 2, s.top_left.y + 2)
-                if my_location.adjacent_distance_to(center) < dist_closest_sector:
+
+                is_closer = my_location.distance_to(center) < dist_closest_sector
+                is_not_capped = sector_assignments[i] <= cap_assignments
+
+                if is_closer and is_not_capped:
                     closest_center = center
+                    closest_sector_index = i
                     dist_closest_sector = my_location.distance_to(center)
             if closest_center is not None:
                 opt_direction = my_location.direction_to(closest_center)
-                for _ in range(9):
-                    if entity.can_move(opt_direction):
-                        entity.queue_move(opt_direction)
+                if entity.can_move(opt_direction):
+                    sector_assignments[closest_sector_index] += 1
+                    entity.queue_move(opt_direction)
+                    continue
+                else:
+                    other_directions = battlecode.Direction.directions()
+                    other_directions.remove(opt_direction)
+                    other_directions = np.random.permutation(other_directions)
+                for dir in other_directions:
+                    if entity.can_move(dir):
+                        sector_assignments[closest_sector_index] += 1
+                        entity.queue_move(dir)
                         break
-                    opt_direction = opt_direction.rotate_counter_clockwise_degrees(45)
 
 
 end = time.clock()
