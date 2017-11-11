@@ -47,10 +47,8 @@ def is_throw_path_valid(state, source, target):
     dy = target.location.y - source.location.y
     
     if (abs(dx) != abs(dy) and dx != 0 and dy != 0):                                         
-        print(dx, dy)
         return False
 
-    print('Got past')
     initial = source.location
 
     for i in range(max(abs(dx), abs(dy))):
@@ -63,7 +61,7 @@ def is_throw_path_valid(state, source, target):
 
         if is_occupied:
             return False
-
+    print('Got past')
     return True
 
 """ Don't use this; use sector_at
@@ -153,7 +151,11 @@ for state in game.turns():
             # No objects thrown, move towards nearest enemy statue
             nearest_statue = nearest_enemy_glass_state_in_any_sector(state, entity)
             if nearest_statue is None:
-                break
+               for direction in np.random.permutation(battlecode.Direction.directions()):
+                   if entity.can_move(direction):
+                       entity.queue_move(direction)
+               break
+
             towards_enemy = entity.location.direction_to(nearest_statue.location)
             if entity.can_move(towards_enemy):
                 entity.queue_move(towards_enemy)
