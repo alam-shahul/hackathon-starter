@@ -64,22 +64,23 @@ Colonization code below
 for state in game.turns():
     # Your code will run within this loop
 
-    num_entities = len(list(state.get_entities(team=state.my_team)))
+    all_entities = list(state.get_entities(team=state.my_team))
+    num_entities = len(all_entities)
     num_entities_to_run = num_entities if num_entities <= CAP_ROBOTS_TO_PROCESS else CAP_ROBOTS_TO_PROCESS
     unoccupied_sectors = get_unoccupied_sectors(state)
     sector_assignments = [0]*len(unoccupied_sectors)
     if len(unoccupied_sectors) > 0:
         cap_assignments = num_entities_to_run // len(unoccupied_sectors)
+    else:
+        cap_assignments = 0
 
-    for entity in state.get_entities(team=state.my_team):
+    for entity in all_entities:
         if num_entities_to_run > 0:
             num_entities_to_run -= 1
         else:
             break
 
         my_location = entity.location
-        # near_entities = entity.entities_within_euclidean_distance(1.9)
-        # near_entities = list(filter(lambda x: x.can_be_picked, near_entities))
         is_building = False
 
         # Check for possibility of building in unowned sector
@@ -106,8 +107,11 @@ for state in game.turns():
             for i in range(len(unoccupied_sectors)):
                 s = unoccupied_sectors[i]
                 center = battlecode.Location(s.top_left.x + 2, s.top_left.y + 2)
-                if my_location.adjacent_distance_to(center) < dist_closest_sector \
-                        and sector_assignments[i] <= cap_assignments:
+
+                is_closer = my_location.distance_to(center) < dist_closest_sector
+                is_not_capped = sector_assignments[i] <= cap_assignments
+
+                if is_closer and is_not_capped:
                     closest_center = center
                     closest_sector_index = i
                     dist_closest_sector = my_location.distance_to(center)
